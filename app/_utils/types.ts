@@ -6,3 +6,8 @@ export interface Message {
 export interface FormMessage {
   text: string
 }
+
+export interface ChatResponse {
+  humanMessage: Message
+  aiMessage: Message
+}

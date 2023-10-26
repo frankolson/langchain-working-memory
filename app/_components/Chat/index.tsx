@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { FormMessage, Message } from "@/app/_utils/types"
+import { ChatResponse, FormMessage, Message } from "@/app/_utils/types"
 import MessageComponent from "./Message"
 
 export default function Chat() {
@@ -11,11 +11,34 @@ export default function Chat() {
     { role: "human", text: "I want to buy a new phone"},
     { role: "ai", text: "What kind of phone do you want to buy?"},
   ])
-  const { register, handleSubmit, reset } = useForm<FormMessage>()
+  const { register, handleSubmit, reset, formState } = useForm<FormMessage>()
+  const { isSubmitting, isValid } = formState
 
-  function handleFormSubmit({ text }: FormMessage) {
-    setMessages([...messages, { role: "human", text }])
-    reset()
+  async function handleFormSubmit({ text }: FormMessage) {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text })
+      })
+      
+      if (response.ok) {
+        const data = await response.json() as ChatResponse
+        const { humanMessage, aiMessage } = data
+
+        setMessages([...messages, humanMessage, aiMessage])
+        reset()
+      } else if (response.status === 402) {
+        const data = await response.json()
+        throw new Error(data.error)
+      } else {
+        throw new Error("Something went wrong when submitting your message, please try again later.")
+      }
+    } catch (error) {
+      alert((error as Error).message)
+    }
   }
 
   return (
@@ -35,7 +58,8 @@ export default function Chat() {
         />
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg bg-blue-500 text-white"
+          className="px-4 py-2 rounded-lg bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting || !isValid}
         >
           Send
         </button>
