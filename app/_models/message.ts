@@ -27,6 +27,14 @@ export default class Message {
     return messages.map(message => new Message(message.text, message.role as MessageRole))
   }
 
+  static async last(count: number) {
+    const messages = await this.prismaClient.message.findMany({
+      orderBy: { createdAt: "desc" },
+      take: count
+    })
+    return messages.map(message => new Message(message.text, message.role as MessageRole))
+  }
+
   private static get prismaClient() {
     if (!this._prismaClient) {
       this._prismaClient = new PrismaClient()

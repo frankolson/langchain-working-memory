@@ -10,9 +10,12 @@ export async function POST(request: Request) {
   const body = await request.json()
   const { text: input } = body
   
-  const { response } = await createChatChain().call({ input })
+  const chatHistory = await Message.last(12)
+  const result = await createChatChain(chatHistory.reverse()).call({ input })
+  console.log(result)
+  
   const humanMessage = await Message.create(input, "human")
-  const aiMessage = await Message.create(response, "ai")
+  const aiMessage = await Message.create(result.response, "ai")
   
   return NextResponse.json({ humanMessage, aiMessage }, { status: 201 })
 }
