@@ -1,16 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { ChatResponse, FormMessage, Message } from "@/app/_utils/types"
+import { ChatResponse, FormMessage } from "@/app/_utils/types"
 import MessageComponent from "./Message"
+import Message from "@/app/_models/message"
 
 export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "ai", text: "Hello, how can I help you?"},
-    { role: "human", text: "I want to buy a new phone"},
-    { role: "ai", text: "What kind of phone do you want to buy?"},
-  ])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [messages, setMessages] = useState<Message[]>([])
   const { register, handleSubmit, reset, formState } = useForm<FormMessage>()
   const { isSubmitting, isValid } = formState
 
@@ -41,10 +39,33 @@ export default function Chat() {
     }
   }
 
+  useEffect(() => {
+    async function fetchMessages() {
+      try {
+        const response = await fetch('/api/chat')
+        const data = await response.json() as Message[]
+
+        setMessages(data)
+      } catch (error) {
+        alert((error as Error).message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchMessages()
+  }, [])
+
   return (
     <div className="flex flex-col h-full rounded-md border w-full md:w-[768px]">
       <div className="flex-1 p-4 overflow-y-auto">
-        {messages.map((message, index) => (
+        {isLoading && <p className="text-center">Loading...</p>}
+
+        {!isLoading && messages.length === 0 && (
+          <p className="text-center">No messages yet.</p>
+        )}
+
+        {!isLoading && messages.map((message, index) => (
           <MessageComponent key={index} message={message} />
         ))}
       </div>

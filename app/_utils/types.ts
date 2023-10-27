@@ -1,13 +1,12 @@
-export interface Message {
-  role: "human" | "ai"
+import Message from "@/app/_models/message"
+
+export type MessageRole = "human" | "ai"
+
+export type FormMessage  = {
   text: string
 }
 
-export interface FormMessage {
-  text: string
-}
-
-export interface ChatResponse {
+export type ChatResponse = {
   humanMessage: Message
   aiMessage: Message
 }
