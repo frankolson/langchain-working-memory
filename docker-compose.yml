@@ -10,4 +10,21 @@ services:
       - ./:/app
     ports:
       - 3000:3000
+    depends_on:
+      - chroma
+    networks:
+      - vector_db_network
     command: npm run dev
+  
+  chroma:
+    image: chromadb/chroma
+    container_name: chroma
+    ports:
+      - 8000:8000
+    networks:
+      - vector_db_network
+
+networks:
+  vector_db_network:
+    driver: bridge
+    

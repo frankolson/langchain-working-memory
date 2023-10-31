@@ -11,7 +11,8 @@ export async function POST(request: Request) {
   const { text: input } = body
   
   const chatHistory = await Message.last(12)
-  const result = await createChatChain(chatHistory.reverse()).call({ input })
+  const chatChain = await createChatChain(chatHistory.reverse())
+  const result = await chatChain.call({ input })
   console.log(result)
   
   const humanMessage = await Message.create(input, "human")
