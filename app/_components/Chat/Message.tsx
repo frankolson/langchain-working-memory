@@ -1,10 +1,10 @@
-import { Message } from "@/app/_utils/types";
+import Message from "@/app/_models/message"
 
 interface Props {
   message: Message
 }
 
-export default function Message({ message }: Props) {
+export default function MessageComponent({ message }: Props) {
   return (
     <div
       className={`flex items-end ${
