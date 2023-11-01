@@ -3,12 +3,18 @@ import {
   BufferMemory,
   ChatMessageHistory,
   CombinedMemory,
-  VectorStoreRetrieverMemory
 } from "langchain/memory"
-import { AIMessage, BaseMessage, HumanMessage } from "langchain/schema"
+import {
+  AIMessage,
+  BaseMessage,
+  HumanMessage
+} from "langchain/schema"
 import { ChatOpenAI } from "langchain/chat_models/openai"
 import Message from "@/app/_models/message"
-import { createVectorStore } from "@/app/_utils/vector-store"
+import {
+  CustomVectorStoreRetrieverMemory,
+  createVectorStore
+} from "@/app/_utils/vector-store"
 import { PromptTemplate } from "langchain/prompts"
 
 const DEFAULT_TEMPLATE = `The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know.
@@ -25,7 +31,7 @@ export async function createChatChain(messages: Message[]) {
   const llm = new ChatOpenAI({})
   const prompt = createPrompt()
   const shortTermMemory = createShortTermMemory(messages)
-  const longTermMemory = await createLongTermMemory()
+  const longTermMemory = await createLongTermMemory(extractMessageIds(messages))
   const memory = new CombinedMemory({
     memories: [shortTermMemory, longTermMemory],
   })
@@ -50,14 +56,28 @@ function createShortTermMemory(messages: Message[]) {
   })
 }
 
-async function createLongTermMemory() {
+async function createLongTermMemory(excludedIds: number[]) {
   const vectorStore = await createVectorStore()
+  const filters = excludedIds.length > 0
+    ? {
+      "$and": [
+        { aiMessageId: { "$nin": excludedIds } },
+        { userMessageId: { "$nin": excludedIds } },
+      ]
+    }
+    : {}
   
-  return new VectorStoreRetrieverMemory({
-    vectorStoreRetriever: vectorStore.asRetriever(5),
+  return new CustomVectorStoreRetrieverMemory({
+    vectorStoreRetriever: vectorStore.asRetriever(5, filters),
     memoryKey: "history",
     inputKey: "input",
   })
+}
+
+function extractMessageIds(messages: Message[]) {
+  return messages
+    .map(message => message.id)
+    .filter(id => id !== undefined) as number[]
 }
 
 function formatMessages(messages: Message[]): BaseMessage[] {

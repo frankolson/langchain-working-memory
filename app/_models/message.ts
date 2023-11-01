@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import { VectorStore } from "langchain/vectorstores/base"
 
 type MessageRole = "human" | "ai"
 
@@ -7,7 +6,6 @@ export default class Message {
   id?: number
   text: string
   role: MessageRole
-  private _vectorStore?: VectorStore
 
   private static _prismaClient: PrismaClient
 
