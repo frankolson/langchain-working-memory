@@ -16,7 +16,7 @@ export default function Message({ message }: Props) {
       )}
       
       <div
-        className={`px-4 py-2 rounded-lg ${
+        className={`px-4 py-2 rounded-lg whitespace-pre-wrap ${
           message.role === "human"
             ? "bg-blue-500 text-white"
             : "bg-gray-200"
